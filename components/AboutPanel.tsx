@@ -177,7 +177,7 @@ const AboutPanel: React.FC<AboutPanelProps> = ({ isOpen, onClose, onHelpClick, o
           </p>
           <div className="flex justify-center">
             <a
-              href="#"
+              href="https://buy.stripe.com/8x228r3T26J82CSe0K08g02"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 bg-[#6aaa64] hover:bg-[#5a9a54] text-white font-bold py-2 px-6 rounded-lg shadow-md active:scale-95 transition-all"

@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Enable class-based dark mode in Tailwind v4 */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* Custom CSS Variables for theming */
 :root {
   --color-surface: #ffffff;
@@ -21,10 +24,14 @@
   color-scheme: dark;
 }
 
+/* Prevent pull-to-refresh globally while allowing scroll */
+html, body {
+  overscroll-behavior-y: contain;
+}
+
 body {
   font-family: 'Nunito', sans-serif;
-  touch-action: manipulation;
-  overscroll-behavior: none;
+  touch-action: pan-x pan-y;
   background-color: var(--color-surface);
   color: var(--color-text-primary);
   transition: background-color 0.3s, color 0.3s;

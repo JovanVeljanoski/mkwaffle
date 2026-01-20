@@ -41,6 +41,8 @@ const Tile: React.FC<TileProps> = React.memo(({
 
   // Base classes for the tile
   // Updated sizes: w-[3.8rem] (~60px) for mobile, sm:w-20 (80px) for larger screens
+  // Only apply touch-none when tile is interactive (to prevent scroll during drag)
+  const isInteractive = !disabled && data.status !== CellStatus.CORRECT;
   const baseClasses = `
     relative w-[3.8rem] h-[3.8rem] sm:w-20 sm:h-20
     flex items-center justify-center
@@ -48,7 +50,7 @@ const Tile: React.FC<TileProps> = React.memo(({
     rounded-lg select-none
     border-b-[4px] sm:border-b-[6px]
     transition-all duration-500 ease-in-out
-    touch-none
+    ${isInteractive ? 'touch-none' : ''}
   `;
 
   // Cursor logic
@@ -69,8 +71,6 @@ const Tile: React.FC<TileProps> = React.memo(({
       // Normal interactive state
       stateClass = 'hover:scale-105 hover:brightness-105 active:scale-95';
   }
-
-  const isInteractive = !disabled && data.status !== CellStatus.CORRECT;
 
   return (
     <div

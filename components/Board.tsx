@@ -19,9 +19,13 @@ const Board: React.FC<BoardProps> = ({
   isGameActive,
   isGameOver = false
 }) => {
+  // Only disable touch on the board during active gameplay (to allow drag without scroll)
+  // After game ends, allow normal touch interactions
+  const touchClass = isGameActive ? 'touch-none' : '';
+
   return (
     // Reduced gap from gap-2/gap-3 to gap-1.5/gap-2 for a tighter look
-    <div className="grid grid-cols-5 gap-1.5 sm:gap-2 p-1 rounded-xl touch-none select-none">
+    <div className={`grid grid-cols-5 gap-1.5 sm:gap-2 p-1 rounded-xl select-none ${touchClass}`}>
       {grid.map((row, rIndex) => (
         <React.Fragment key={rIndex}>
           {row.map((cell, cIndex) => (

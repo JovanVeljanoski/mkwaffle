@@ -13,12 +13,25 @@ const OptionsModal: React.FC<OptionsModalProps> = ({
   isDarkMode,
   onToggleDarkMode,
 }) => {
+  // Handle Escape key to close modal
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
     <div
       className="fixed inset-0 z-[500] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200"
       onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="options-modal-title"
     >
       <div
         className="bg-white dark:bg-gray-800 w-full max-w-sm rounded-2xl shadow-2xl overflow-hidden flex flex-col relative animate-in zoom-in-95 duration-200"
@@ -26,11 +39,12 @@ const OptionsModal: React.FC<OptionsModalProps> = ({
       >
         {/* Header */}
         <div className="flex items-center justify-center px-6 py-4 border-b border-gray-100 dark:border-gray-700 relative">
-          <h2 className="text-xl font-black text-gray-800 dark:text-white tracking-wider">
+          <h2 id="options-modal-title" className="text-xl font-black text-gray-800 dark:text-white tracking-wider">
             ОПЦИИ
           </h2>
           <button
             onClick={onClose}
+            aria-label="Затвори"
             className="absolute right-4 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors group"
           >
             <svg
@@ -40,6 +54,7 @@ const OptionsModal: React.FC<OptionsModalProps> = ({
               viewBox="0 0 24 24"
               stroke="currentColor"
               strokeWidth={3}
+              aria-hidden="true"
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>

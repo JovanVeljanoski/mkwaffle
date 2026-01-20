@@ -160,9 +160,7 @@ export async function recordGameResult(
   starsEarned: number, // 0-5 for wins
   dateString: string   // YYYY-MM-DD format
 ): Promise<GameStats> {
-  const db = await openDB();
-
-  // First check if already recorded
+  // First check if already recorded (before opening DB for write)
   const existingRecord = await getGameRecord(puzzleId);
   if (existingRecord) {
     // Already played this puzzle, return current stats
@@ -171,6 +169,8 @@ export async function recordGameResult(
 
   // Get current stats
   const currentStats = await getStats();
+
+  const db = await openDB();
 
   // Create new record
   const record: GameRecord = {

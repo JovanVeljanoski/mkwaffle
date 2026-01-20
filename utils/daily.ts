@@ -59,14 +59,37 @@ export const getDailySeed = (): number => {
 
 export const getNextMidnight = (): Date => {
   const now = new Date();
-  const amsterdamTime = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Amsterdam' }));
 
-  const midnight = new Date(amsterdamTime);
-  midnight.setHours(24, 0, 0, 0);
+  // Get Amsterdam date parts using the same reliable method as getDailySeed
+  const { year, month, day } = getAmsterdamDateParts(now);
 
-  // Calculate difference and add to local 'now' to get local expiration
-  const diff = midnight.getTime() - amsterdamTime.getTime();
-  return new Date(now.getTime() + diff);
+  // Calculate Amsterdam midnight for tomorrow in UTC
+  // Amsterdam is UTC+1 (CET) or UTC+2 (CEST during DST)
+  // We compute "tomorrow 00:00 Amsterdam" by:
+  // 1. Getting tomorrow's date in Amsterdam
+  // 2. Creating that date at midnight UTC, then adjusting for timezone
+
+  // Tomorrow in Amsterdam
+  const tomorrowUTC = Date.UTC(year, month - 1, day + 1, 0, 0, 0, 0);
+
+  // Get the offset for Amsterdam at that time by checking what hour it shows
+  const tomorrowDate = new Date(tomorrowUTC);
+  const amsterdamHourAtUTCMidnight = parseInt(
+    new Intl.DateTimeFormat('en-US', {
+      timeZone: 'Europe/Amsterdam',
+      hour: 'numeric',
+      hour12: false,
+    }).format(tomorrowDate),
+    10
+  );
+
+  // If Amsterdam shows hour 1 at UTC midnight, Amsterdam is UTC+1 (CET)
+  // If Amsterdam shows hour 2 at UTC midnight, Amsterdam is UTC+2 (CEST)
+  // So Amsterdam midnight = UTC midnight - offset hours
+  const offsetHours = amsterdamHourAtUTCMidnight;
+  const amsterdamMidnightUTC = tomorrowUTC - offsetHours * 60 * 60 * 1000;
+
+  return new Date(amsterdamMidnightUTC);
 };
 
 // Shuffler using the daily seed

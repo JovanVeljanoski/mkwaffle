@@ -121,9 +121,15 @@ const ResultModal: React.FC<ResultModalProps> = ({ status, swapsRemaining, solut
     }
 
     if (!shared) {
-      await navigator.clipboard.writeText(shareText);
-      setShowCopied(true);
-      setTimeout(() => setShowCopied(false), 2000);
+      try {
+        await navigator.clipboard.writeText(shareText);
+        setShowCopied(true);
+        setTimeout(() => setShowCopied(false), 2000);
+      } catch {
+        // Clipboard API not available or permission denied
+        // Could show a "copy failed" message, but silent fail is acceptable
+        // since this is a non-critical feature
+      }
     }
   };
 

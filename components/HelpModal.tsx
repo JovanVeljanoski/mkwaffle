@@ -8,12 +8,25 @@ interface HelpModalProps {
 }
 
 const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
+  // Handle Escape key to close modal
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200"
       onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="help-modal-title"
     >
       <div
         className="bg-white dark:bg-gray-800 w-full max-w-md rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto flex flex-col relative animate-in zoom-in-95 duration-200"
@@ -22,12 +35,13 @@ const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
 
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-800 z-10">
-          <h2 className="text-xl font-black text-gray-800 dark:text-white tracking-wider">КАКО СЕ ИГРА</h2>
+          <h2 id="help-modal-title" className="text-xl font-black text-gray-800 dark:text-white tracking-wider">КАКО СЕ ИГРА</h2>
           <button
             onClick={onClose}
+            aria-label="Затвори"
             className="p-2 -mr-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors group"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3} aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>

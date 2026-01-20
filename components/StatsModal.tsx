@@ -8,6 +8,16 @@ interface StatsModalProps {
 }
 
 const StatsModal: React.FC<StatsModalProps> = ({ isOpen, onClose, stats }) => {
+  // Handle Escape key to close modal
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const distribution = stats.distribution;
@@ -68,6 +78,9 @@ const StatsModal: React.FC<StatsModalProps> = ({ isOpen, onClose, stats }) => {
     <div
       className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200"
       onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="stats-modal-title"
     >
       <div
         className="bg-white dark:bg-gray-800 w-full max-w-md rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto flex flex-col relative animate-in zoom-in-95 duration-200"
@@ -76,12 +89,13 @@ const StatsModal: React.FC<StatsModalProps> = ({ isOpen, onClose, stats }) => {
 
         {/* Header */}
         <div className="flex items-center justify-center px-6 py-4 border-b border-gray-100 dark:border-gray-700 sticky top-0 bg-white dark:bg-gray-800 z-10 relative">
-          <h2 className="text-xl font-black text-gray-800 dark:text-white tracking-wider">СТАТИСТИКА</h2>
+          <h2 id="stats-modal-title" className="text-xl font-black text-gray-800 dark:text-white tracking-wider">СТАТИСТИКА</h2>
           <button
             onClick={onClose}
+            aria-label="Затвори"
             className="absolute right-4 p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors group"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-200" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3} aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
             </svg>
           </button>

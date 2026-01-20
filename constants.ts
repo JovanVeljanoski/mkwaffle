@@ -1,19 +1,13 @@
 export const GRID_SIZE = 5;
 export const TOTAL_SWAPS = 15;
 
-// Visual configuration - Matching Waffle.net colors
 export const COLORS = {
-  // The correct tile green
   GREEN: 'bg-[#58a758] border-[#3e8e3e] text-white',
-  // The present tile yellow
   YELLOW: 'bg-[#eec02b] border-[#cfa419] text-white',
-  // The neutral/wrong tile (light gray/white)
   GRAY: 'bg-[#eaeff5] border-[#d3d6da] text-[#333333]',
-  // Game over dark gray
   DARK: 'bg-[#3a3a3c] border-[#2a2a2c] text-white',
 };
 
-// Base word list for generation
 const RAW_WORDS = [
     'отпад', 'крема', 'женка', 'тутун', 'робот', 'лекар', 'ефект', 'куфер', 'пејач', 'плажа',
     'долап', 'чинар', 'мотор', 'барок', 'жртва', 'пруга', 'ќумур', 'тигар', 'крило', 'флека',
@@ -114,5 +108,4 @@ const RAW_WORDS = [
     'влада', 'амеба', 'форма', 'паста',
 ];
 
-// Normalize to uppercase
 export const WORDS = RAW_WORDS.map(w => w.toUpperCase());

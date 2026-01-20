@@ -1,8 +1,8 @@
 export enum CellStatus {
-  CORRECT = 'CORRECT', // Green
-  PRESENT = 'PRESENT', // Yellow
-  WRONG = 'WRONG',     // Gray/Neutral
-  NONE = 'NONE'        // Empty space in grid
+  CORRECT = 'CORRECT',
+  PRESENT = 'PRESENT',
+  WRONG = 'WRONG',
+  NONE = 'NONE'
 }
 
 export interface Coords {
@@ -19,12 +19,11 @@ export type Grid = CellData[][];
 
 export interface DailyPuzzle {
   id: number;
-  solution: string[][]; // 5x5 char array
+  solution: string[][];
 }
 
 export type GameStatus = 'PLAYING' | 'WON' | 'LOST';
 
-// Stats Types
 export interface StatsDistribution {
   failed: number;
   stars0: number;
@@ -41,11 +40,11 @@ export interface GameStats {
   currentStreak: number;
   bestStreak: number;
   distribution: StatsDistribution;
-  lastPlayedDate: string | null; // ISO date string (YYYY-MM-DD)
+  lastPlayedDate: string | null;
 }
 
 export interface GameRecord {
-  puzzleId: number; // Daily seed
-  stars: number;    // 0-5, or -1 for loss
-  date: string;     // ISO date string
+  puzzleId: number;
+  stars: number;
+  date: string;
 }

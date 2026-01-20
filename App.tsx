@@ -25,11 +25,11 @@ interface DragTarget {
 interface DraggingState {
   source: Coords;
   tileData: CellData;
-  origin: { x: number; y: number }; // Fixed position (viewport) where drag started
-  startClient: { x: number; y: number }; // Mouse position at start
+  origin: { x: number; y: number };
+  startClient: { x: number; y: number };
   width: number;
   height: number;
-  targets: DragTarget[]; // Cache valid targets on drag start
+  targets: DragTarget[];
 }
 
 const App: React.FC = () => {
@@ -44,49 +44,37 @@ const App: React.FC = () => {
   const [isOptionsOpen, setIsOptionsOpen] = useState(false);
   const [hasRecordedResult, setHasRecordedResult] = useState(false);
 
-  // Stats management
   const { stats, recordResult } = useStats();
-
-  // Dark mode
   const { isDarkMode, toggleDarkMode } = useDarkMode();
 
-  // Custom Drag State
   const [dragging, setDragging] = useState<DraggingState | null>(null);
   const [hoverTarget, setHoverTarget] = useState<Coords | null>(null);
-
-  // Ref for the floating element to update styles directly without re-renders
   const floatingRef = useRef<HTMLDivElement>(null);
 
-  // Initialization - load saved state or start new game
   useEffect(() => {
     const initGame = async () => {
       const puzzleId = getDailySeed();
       const savedState = await loadGameState(puzzleId);
 
       if (savedState) {
-        // Restore saved game state
         setGrid(savedState.grid);
         setSolution(savedState.solution);
         setSwaps(savedState.swaps);
         setStatus(savedState.status);
 
-        // If game was already finished, mark as recorded
         if (savedState.status !== 'PLAYING') {
           setHasRecordedResult(true);
         }
       } else {
-        // Start new game
         const puzzle = getDailyPuzzle();
         setSolution(puzzle.solution);
         const initialGrid = generateInitialState(puzzle.solution);
         setGrid(initialGrid);
 
-        // Check if puzzle is already solved (rare edge case)
         if (checkWin(initialGrid)) {
           setStatus('WON');
         }
 
-        // Save initial state
         await saveGameState({
           puzzleId,
           grid: initialGrid,
@@ -100,48 +88,33 @@ const App: React.FC = () => {
     initGame();
   }, []);
 
-  // Record game result when game ends
   useEffect(() => {
     if (status !== 'PLAYING' && !hasRecordedResult) {
       const won = status === 'WON';
-      // Stars = swaps remaining (capped at 5)
       const starsEarned = won ? Math.min(5, Math.max(0, swaps)) : 0;
       recordResult(won, starsEarned);
       setHasRecordedResult(true);
     }
   }, [status, swaps, hasRecordedResult, recordResult]);
 
-  // --- Core Game Logic ---
-
   const performSwap = useCallback(async (from: Coords, to: Coords) => {
     if (!grid || !solution || status !== 'PLAYING') return;
-
-    // Prevent swapping if one is fixed (Green)
     if (grid[from.row][from.col].status === CellStatus.CORRECT) return;
     if (grid[to.row][to.col].status === CellStatus.CORRECT) return;
+    if (from.row === to.row && from.col === to.col) return;
 
-    // Prevent swapping with self
-    if (from.row === to.row && from.col === to.col) {
-        return;
-    }
-
-    // Create deep copy
     const newGrid = grid.map(r => r.map(c => ({...c})));
 
-    // Swap chars
     const tempChar = newGrid[from.row][from.col].char;
     newGrid[from.row][from.col].char = newGrid[to.row][to.col].char;
     newGrid[to.row][to.col].char = tempChar;
 
-    // Recalculate colors
     const coloredGrid = updateColors(newGrid, solution);
     setGrid(coloredGrid);
 
-    // Update Swaps
     const newSwaps = swaps - 1;
     setSwaps(newSwaps);
 
-    // Check Win or Loss
     const isWin = checkWin(coloredGrid);
     let newStatus: GameStatus = 'PLAYING';
     if (isWin) {
@@ -152,7 +125,6 @@ const App: React.FC = () => {
       setStatus('LOST');
     }
 
-    // Save game state after each move
     const puzzleId = getDailySeed();
     await saveGameState({
       puzzleId,
@@ -162,8 +134,6 @@ const App: React.FC = () => {
       solution,
     });
   }, [grid, solution, status, swaps]);
-
-  // --- Pointer Event Handlers (Unified Mouse & Touch) ---
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>, row: number, col: number) => {
     if (status !== 'PLAYING' || !grid || isHelpOpen) return;
@@ -176,7 +146,6 @@ const App: React.FC = () => {
 
     const rect = e.currentTarget.getBoundingClientRect();
 
-    // Pre-calculate valid targets to avoid layout thrashing during drag
     const validTargets: DragTarget[] = [];
     const tileElements = document.querySelectorAll('[data-waffle-tile]');
 
@@ -188,10 +157,7 @@ const App: React.FC = () => {
       const r = parseInt(rStr, 10);
       const c = parseInt(cStr, 10);
 
-      // Don't target self
       if (r === row && c === col) return;
-
-      // Don't target solved tiles
       if (grid[r][c].status === CellStatus.CORRECT) return;
 
       validTargets.push({
@@ -213,7 +179,6 @@ const App: React.FC = () => {
     setHoverTarget(null);
   };
 
-  // Global Pointer Listeners for Dragging
   useEffect(() => {
     if (!dragging) return;
 
@@ -223,12 +188,10 @@ const App: React.FC = () => {
       const dx = e.clientX - dragging.startClient.x;
       const dy = e.clientY - dragging.startClient.y;
 
-      // 1. Move Visual
       if (floatingRef.current) {
         floatingRef.current.style.transform = `translate3d(${dx}px, ${dy}px, 0) scale(1.1)`;
       }
 
-      // 2. Find Drop Target (Intersection Area)
       const dragLeft = dragging.origin.x + dx;
       const dragTop = dragging.origin.y + dy;
       const dragRight = dragLeft + dragging.width;
@@ -237,14 +200,10 @@ const App: React.FC = () => {
       let maxOverlapArea = 0;
       let bestCandidate: Coords | null = null;
 
-      // We only loop through pre-calculated valid targets
       for (const target of dragging.targets) {
         const tRect = target.rect;
-
-        // Calculate intersection rectangle
         const x_overlap = Math.max(0, Math.min(dragRight, tRect.right) - Math.max(dragLeft, tRect.left));
         const y_overlap = Math.max(0, Math.min(dragBottom, tRect.bottom) - Math.max(dragTop, tRect.top));
-
         const area = x_overlap * y_overlap;
 
         if (area > maxOverlapArea) {
@@ -253,7 +212,6 @@ const App: React.FC = () => {
         }
       }
 
-      // Require a minimum overlap (e.g., 30% of the tile area) to snap
       const threshold = (dragging.width * dragging.height) * 0.3;
 
       if (bestCandidate && maxOverlapArea > threshold) {
@@ -267,9 +225,9 @@ const App: React.FC = () => {
       }
     };
 
-    const onPointerUp = (_e: PointerEvent) => {
+    const onPointerUp = () => {
       if (hoverTarget) {
-          performSwap(dragging.source, hoverTarget);
+        performSwap(dragging.source, hoverTarget);
       }
       setDragging(null);
       setHoverTarget(null);
@@ -284,7 +242,13 @@ const App: React.FC = () => {
     };
   }, [dragging, hoverTarget, performSwap]);
 
-  if (!grid) return <div className="h-screen flex items-center justify-center font-bold text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-900">Се вчитува...</div>;
+  if (!grid) {
+    return (
+      <div className="h-screen flex items-center justify-center font-bold text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-900">
+        Се вчитува...
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 flex flex-col items-center font-sans overflow-x-hidden touch-none pb-10 transition-colors duration-300">
@@ -296,7 +260,6 @@ const App: React.FC = () => {
       />
 
       <main className="flex-1 w-full max-w-[600px] flex flex-col items-center px-2 relative">
-
         <Board
           grid={grid}
           dragSource={dragging?.source || null}
@@ -306,7 +269,6 @@ const App: React.FC = () => {
           isGameOver={status === 'LOST'}
         />
 
-        {/* Swaps counter or Game Over banner */}
         <div className="mt-4 mb-4 w-full flex flex-col items-center">
           {status === 'PLAYING' && (
             <div className="text-xl text-gray-700 dark:text-gray-300 tracking-widest font-sans flex items-center px-6 py-3">
@@ -330,13 +292,11 @@ const App: React.FC = () => {
           )}
         </div>
 
-        {/* Result details */}
         {status !== 'PLAYING' && (
           <div className="w-full flex justify-center">
             <ResultModal status={status} swapsRemaining={swaps} solution={solution} stats={stats} grid={grid} />
           </div>
         )}
-
       </main>
 
       <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
@@ -362,7 +322,6 @@ const App: React.FC = () => {
         onToggleDarkMode={toggleDarkMode}
       />
 
-      {/* Floating Tile Layer */}
       {dragging && (
         <div
           ref={floatingRef}
@@ -372,22 +331,18 @@ const App: React.FC = () => {
             top: dragging.origin.y,
             width: dragging.width,
             height: dragging.height,
-            // Initial transform is handled by CSS mostly, but we set explicit here for consistency
             transform: 'scale(1.1)',
             filter: 'drop-shadow(0 10px 15px rgba(0,0,0,0.3))'
           }}
         >
-           <Tile
-              data={dragging.tileData}
-              row={-1}
-              col={-1}
-              isDraggingSource={false}
-              onPointerDown={() => {}}
-              style={{
-                width: '100%',
-                height: '100%',
-              }}
-           />
+          <Tile
+            data={dragging.tileData}
+            row={-1}
+            col={-1}
+            isDraggingSource={false}
+            onPointerDown={() => {}}
+            style={{ width: '100%', height: '100%' }}
+          />
         </div>
       )}
     </div>

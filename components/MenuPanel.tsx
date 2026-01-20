@@ -1,4 +1,5 @@
 import React from 'react';
+import waffleMascot from '../public/waffle.svg';
 
 interface MenuPanelProps {
   isOpen: boolean;
@@ -118,7 +119,7 @@ const MenuPanel: React.FC<MenuPanelProps> = ({
 
         {/* Cute waffle mascot at bottom */}
         <div className="mt-auto flex justify-end p-4">
-          <img src="/waffle.svg" alt="Waffle mascot" className="w-40 h-40 opacity-90" />
+          <img src={waffleMascot} alt="Waffle mascot" className="w-40 h-40 opacity-90" />
         </div>
       </div>
     </>

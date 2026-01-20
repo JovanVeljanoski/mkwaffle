@@ -6,9 +6,9 @@
     <title>Вафла - Игра со зборови</title>
 
     <!-- Favicon -->
-    <link rel="icon" href="/waffle.svg" type="image/svg+xml">
-    <link rel="shortcut icon" href="/waffle.png" type="image/png">
-    <link rel="apple-touch-icon" href="/waffle.png">
+    <link rel="icon" href="./waffle.svg" type="image/svg+xml">
+    <link rel="shortcut icon" href="./waffle.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="./waffle.svg">
 
     <!-- Primary Meta Tags -->
     <meta name="title" content="Вафла - Игра со зборови">
@@ -17,91 +17,25 @@
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://vafla.mk/">
+    <meta property="og:url" content="https://jovanveljanoski.github.io/mkwaffle/">
     <meta property="og:title" content="Вафла - Игра со зборови">
     <meta property="og:description" content="Македонска верзија на популарната игра Waffle. Подредете ги буквите за да ги составите зборовите!">
-    <meta property="og:image" content="https://vafla.mk/waffle-og.png">
+    <meta property="og:image" content="https://jovanveljanoski.github.io/mkwaffle/waffle-og.png">
 
     <!-- Twitter -->
     <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://vafla.mk/">
+    <meta property="twitter:url" content="https://jovanveljanoski.github.io/mkwaffle/">
     <meta property="twitter:title" content="Вафла - Игра со зборови">
     <meta property="twitter:description" content="Македонска верзија на популарната игра Waffle. Подредете ги буквите за да ги составите зборовите!">
-    <meta property="twitter:image" content="https://vafla.mk/waffle-og.png">
+    <meta property="twitter:image" content="https://jovanveljanoski.github.io/mkwaffle/waffle-og.png">
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-      tailwind.config = {
-        darkMode: 'class',
-        theme: {
-          extend: {
-            colors: {
-              // These reference CSS variables for easy dark mode
-              surface: 'var(--color-surface)',
-              'surface-secondary': 'var(--color-surface-secondary)',
-              'text-primary': 'var(--color-text-primary)',
-              'text-secondary': 'var(--color-text-secondary)',
-              'text-muted': 'var(--color-text-muted)',
-              border: 'var(--color-border)',
-            }
-          }
-        }
-      }
-    </script>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
-    <style>
-      /* Light mode colors (default) */
-      :root {
-        --color-surface: #ffffff;
-        --color-surface-secondary: #f9fafb;
-        --color-text-primary: #1f2937;
-        --color-text-secondary: #4b5563;
-        --color-text-muted: #9ca3af;
-        --color-border: #f3f4f6;
-        color-scheme: light;
-      }
-
-      /* Dark mode colors */
-      .dark {
-        --color-surface: #111827;
-        --color-surface-secondary: #1f2937;
-        --color-text-primary: #f9fafb;
-        --color-text-secondary: #d1d5db;
-        --color-text-muted: #6b7280;
-        --color-border: #374151;
-        color-scheme: dark;
-      }
-
-      body {
-        font-family: 'Nunito', sans-serif;
-        touch-action: manipulation;
-        background-color: var(--color-surface);
-        color: var(--color-text-primary);
-        transition: background-color 0.3s, color 0.3s;
-      }
-
-      .wiggle {
-        animation: wiggle 0.3s ease-in-out;
-      }
-      @keyframes wiggle {
-        0%, 100% { transform: rotate(0deg); }
-        25% { transform: rotate(-3deg); }
-        75% { transform: rotate(3deg); }
-      }
-    </style>
-  <script type="importmap">
-{
-  "imports": {
-    "react": "https://esm.sh/react@^19.2.3",
-    "react/": "https://esm.sh/react@^19.2.3/",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/"
-  }
-}
-</script>
-<link rel="stylesheet" href="/index.css">
-</head>
+  </head>
   <body>
     <div id="root"></div>
-  <script type="module" src="/index.tsx"></script>
-</body>
+    <script type="module" src="/index.tsx"></script>
+  </body>
 </html>

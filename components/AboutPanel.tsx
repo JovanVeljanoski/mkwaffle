@@ -88,7 +88,7 @@ const AboutPanel: React.FC<AboutPanelProps> = ({ isOpen, onClose, onHelpClick, o
         <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-6 text-center">
           Кодот на оваа игра е јавен и можете да го видите{' '}
           <a
-            href="https://github.com/placeholder"
+            href="https://github.com/JovanVeljanoski/mkwaffle"
             target="_blank"
             rel="noopener noreferrer"
             className="text-[#6aaa64] font-semibold hover:underline"

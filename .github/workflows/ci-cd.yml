@@ -42,8 +42,7 @@ jobs:
           echo "Verifying build artifacts..."
           test -f dist/index.html || (echo "Missing index.html" && exit 1)
           test -d dist/assets || (echo "Missing assets directory" && exit 1)
-          # Check that CNAME exists for custom domain
-          test -f dist/CNAME || (echo "Missing CNAME file" && exit 1)
+          ls -la dist/assets/*.css || (echo "No CSS files found" && exit 1)
           echo "✅ Build verification passed!"
 
   build-and-deploy:

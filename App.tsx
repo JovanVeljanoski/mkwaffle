@@ -251,7 +251,7 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 flex flex-col items-center font-sans overflow-x-hidden touch-none pb-10 transition-colors duration-300">
+    <div className="min-h-screen bg-white dark:bg-gray-900 flex flex-col items-center font-sans overflow-x-hidden overscroll-none pb-10 transition-colors duration-300">
       <Header
         onHelpClick={() => setIsHelpOpen(true)}
         onStatsClick={() => setIsStatsOpen(true)}

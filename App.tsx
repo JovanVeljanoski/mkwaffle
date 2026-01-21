@@ -48,7 +48,7 @@ const App: React.FC = () => {
   const { isDarkMode, toggleDarkMode } = useDarkMode();
 
   const [dragging, setDragging] = useState<DraggingState | null>(null);
-  const [hoverTarget, setHoverTarget] = useState<Coords | null>(null);
+  const hoverTargetRef = useRef<Coords | null>(null);
   const floatingRef = useRef<HTMLDivElement>(null);
 
   // Memoized callbacks for Header to prevent unnecessary re-renders
@@ -181,7 +181,6 @@ const App: React.FC = () => {
         rect: el.getBoundingClientRect()
       });
     });
-
     setDragging({
       source: { row, col },
       tileData: tile,
@@ -191,7 +190,7 @@ const App: React.FC = () => {
       height: rect.height,
       targets: validTargets
     });
-    setHoverTarget(null);
+    hoverTargetRef.current = null;
   }, [status, grid, isHelpOpen]);
 
   useEffect(() => {
@@ -230,22 +229,18 @@ const App: React.FC = () => {
       const threshold = (dragging.width * dragging.height) * 0.3;
 
       if (bestCandidate && maxOverlapArea > threshold) {
-        setHoverTarget(prev =>
-          (prev?.row === bestCandidate!.row && prev?.col === bestCandidate!.col)
-            ? prev
-            : bestCandidate
-        );
+        hoverTargetRef.current = bestCandidate;
       } else {
-        setHoverTarget(null);
+        hoverTargetRef.current = null;
       }
     };
 
     const onPointerUp = () => {
-      if (hoverTarget) {
-        performSwap(dragging.source, hoverTarget);
+      if (hoverTargetRef.current) {
+        performSwap(dragging.source, hoverTargetRef.current);
       }
       setDragging(null);
-      setHoverTarget(null);
+      hoverTargetRef.current = null;
     };
 
     window.addEventListener('pointermove', onPointerMove, { passive: false });
@@ -255,7 +250,7 @@ const App: React.FC = () => {
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
     };
-  }, [dragging, hoverTarget, performSwap]);
+  }, [dragging, performSwap]);
 
   if (!grid) {
     return (

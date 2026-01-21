@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
 import Tile from './Tile';
-import { Grid, Coords, CellStatus } from '../types';
+import { Grid, Coords } from '../types';
 
 interface BoardProps {
   grid: Grid;

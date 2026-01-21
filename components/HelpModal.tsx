@@ -1,4 +1,5 @@
 import React, { memo } from 'react';
+import Tile from './Tile';
 import { CellStatus } from '../types';
 
 interface HelpModalProps {

@@ -9,6 +9,7 @@ interface TileProps {
   isDraggingSource: boolean;
   disabled?: boolean;
   isGameOver?: boolean;
+  noTransition?: boolean;
   onPointerDown: (e: React.PointerEvent<HTMLDivElement>, row: number, col: number) => void;
   style?: React.CSSProperties;
 }
@@ -20,6 +21,7 @@ const areTilePropsEqual = (prevProps: TileProps, nextProps: TileProps): boolean 
   if (prevProps.isDraggingSource !== nextProps.isDraggingSource) return false;
   if (prevProps.disabled !== nextProps.disabled) return false;
   if (prevProps.isGameOver !== nextProps.isGameOver) return false;
+  if (prevProps.noTransition !== nextProps.noTransition) return false;
   if (prevProps.data.char !== nextProps.data.char) return false;
   if (prevProps.data.status !== nextProps.data.status) return false;
 
@@ -42,6 +44,7 @@ const Tile: React.FC<TileProps> = React.memo(({
   isDraggingSource,
   disabled,
   isGameOver,
+  noTransition,
   onPointerDown,
   style
 }) => {
@@ -59,12 +62,14 @@ const Tile: React.FC<TileProps> = React.memo(({
   }
 
   const isInteractive = !disabled && data.status !== CellStatus.CORRECT;
+  const transitionClass = noTransition ? '' : 'transition-[background-color,border-color] duration-200 ease-in-out';
   const baseClasses = `
     relative w-[3.8rem] h-[3.8rem] sm:w-20 sm:h-20
     flex items-center justify-center
     text-3xl sm:text-5xl font-bold
     rounded-lg select-none
     border-b-[4px] sm:border-b-[6px]
+    ${transitionClass}
     ${isInteractive ? 'touch-none' : ''}
   `;
 

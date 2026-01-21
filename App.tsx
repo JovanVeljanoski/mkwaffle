@@ -32,6 +32,17 @@ interface DraggingState {
   targets: DragTarget[];
 }
 
+interface SwappingState {
+  from: Coords;
+  to: Coords;
+  fromRect: { x: number; y: number; width: number; height: number };
+  toRect: { x: number; y: number; width: number; height: number };
+  fromData: CellData;
+  toData: CellData;
+  futureFromStatus: CellStatus;
+  futureToStatus: CellStatus;
+}
+
 const App: React.FC = () => {
   const [grid, setGrid] = useState<Grid | null>(null);
   const [solution, setSolution] = useState<string[][] | null>(null);
@@ -48,6 +59,7 @@ const App: React.FC = () => {
   const { isDarkMode, toggleDarkMode } = useDarkMode();
 
   const [dragging, setDragging] = useState<DraggingState | null>(null);
+  const [swapping, setSwapping] = useState<SwappingState | null>(null);
   const hoverTargetRef = useRef<Coords | null>(null);
   const floatingRef = useRef<HTMLDivElement>(null);
 
@@ -236,8 +248,37 @@ const App: React.FC = () => {
     };
 
     const onPointerUp = () => {
-      if (hoverTargetRef.current) {
-        performSwap(dragging.source, hoverTargetRef.current);
+      if (hoverTargetRef.current && grid) {
+        const target = hoverTargetRef.current;
+        const targetElement = dragging.targets.find(t => t.row === target.row && t.col === target.col);
+
+        if (targetElement && solution) {
+          const newGrid = grid.map(r => r.map(c => ({ ...c })));
+          const tempChar = newGrid[dragging.source.row][dragging.source.col].char;
+          newGrid[dragging.source.row][dragging.source.col].char = newGrid[target.row][target.col].char;
+          newGrid[target.row][target.col].char = tempChar;
+          const coloredGrid = updateColors(newGrid, solution);
+
+          setSwapping({
+            from: dragging.source,
+            to: target,
+            fromRect: { x: dragging.origin.x, y: dragging.origin.y, width: dragging.width, height: dragging.height },
+            toRect: { x: targetElement.rect.left, y: targetElement.rect.top, width: targetElement.rect.width, height: targetElement.rect.height },
+            fromData: dragging.tileData,
+            toData: grid[target.row][target.col],
+            futureFromStatus: coloredGrid[dragging.source.row][dragging.source.col].status,
+            futureToStatus: coloredGrid[target.row][target.col].status
+          });
+
+          setTimeout(() => {
+            performSwap(dragging.source, target);
+            requestAnimationFrame(() => {
+              requestAnimationFrame(() => {
+                setSwapping(null);
+              });
+            });
+          }, 195);
+        }
       }
       setDragging(null);
       hoverTargetRef.current = null;
@@ -250,7 +291,7 @@ const App: React.FC = () => {
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
     };
-  }, [dragging, performSwap]);
+  }, [dragging, grid, performSwap, solution]);
 
   if (!grid) {
     return (
@@ -273,6 +314,7 @@ const App: React.FC = () => {
         <Board
           grid={grid}
           dragSource={dragging?.source || null}
+          swapping={swapping}
           onTilePointerDown={handlePointerDown}
           isGameActive={status === 'PLAYING' && !isHelpOpen}
           isGameOver={status === 'LOST'}
@@ -352,6 +394,67 @@ const App: React.FC = () => {
             onPointerDown={noop}
             style={{ width: '100%', height: '100%' }}
           />
+        </div>
+      )}
+      {swapping && (
+        <div className="fixed inset-0 pointer-events-none z-[300]">
+          <div
+            className="absolute transition-all duration-200 ease-in-out"
+            style={{
+              left: swapping.toRect.x,
+              top: swapping.toRect.y,
+              width: swapping.toRect.width,
+              height: swapping.toRect.height,
+              transform: 'scale(1)',
+              animation: 'fly-from-source 200ms ease-in-out forwards'
+            }}
+          >
+            <Tile
+              data={{ ...swapping.fromData, status: swapping.futureToStatus }}
+              row={-1}
+              col={-1}
+              isDraggingSource={false}
+              onPointerDown={noop}
+              style={{ width: '100%', height: '100%' }}
+            />
+          </div>
+
+          <div
+            className="absolute transition-all duration-200 ease-in-out"
+            style={{
+              left: swapping.fromRect.x,
+              top: swapping.fromRect.y,
+              width: swapping.fromRect.width,
+              height: swapping.fromRect.height,
+              animation: 'fly-from-target 200ms ease-in-out forwards'
+            }}
+          >
+            <Tile
+              data={{ ...swapping.toData, status: swapping.futureFromStatus }}
+              row={-1}
+              col={-1}
+              isDraggingSource={false}
+              onPointerDown={noop}
+              style={{ width: '100%', height: '100%' }}
+            />
+          </div>
+
+          <style>{`
+            @keyframes fly-from-source {
+              0% {
+                transform: translate(${swapping.fromRect.x - swapping.toRect.x}px, ${swapping.fromRect.y - swapping.toRect.y}px) scale(1.1);
+                filter: drop-shadow(0 10px 15px rgba(0,0,0,0.3));
+              }
+              100% {
+                transform: translate(0, 0) scale(1);
+                filter: drop-shadow(0 0px 0px rgba(0,0,0,0));
+              }
+            }
+            @keyframes fly-from-target {
+              0% { transform: translate(${swapping.toRect.x - swapping.fromRect.x}px, ${swapping.toRect.y - swapping.fromRect.y}px); }
+              100% { transform: translate(0, 0); }
+            }
+          `}</style>
         </div>
       )}
     </div>

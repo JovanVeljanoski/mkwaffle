@@ -7,29 +7,48 @@ interface TileProps {
   row: number;
   col: number;
   isDraggingSource: boolean;
-  isHoverTarget?: boolean;
   disabled?: boolean;
   isGameOver?: boolean;
   onPointerDown: (e: React.PointerEvent<HTMLDivElement>, row: number, col: number) => void;
   style?: React.CSSProperties;
 }
 
+// Custom comparison to prevent unnecessary re-renders
+const areTilePropsEqual = (prevProps: TileProps, nextProps: TileProps): boolean => {
+  if (prevProps.row !== nextProps.row) return false;
+  if (prevProps.col !== nextProps.col) return false;
+  if (prevProps.isDraggingSource !== nextProps.isDraggingSource) return false;
+  if (prevProps.disabled !== nextProps.disabled) return false;
+  if (prevProps.isGameOver !== nextProps.isGameOver) return false;
+  if (prevProps.data.char !== nextProps.data.char) return false;
+  if (prevProps.data.status !== nextProps.data.status) return false;
+
+  if (prevProps.style !== nextProps.style) {
+    if (!prevProps.style || !nextProps.style) return false;
+    const prevKeys = Object.keys(prevProps.style);
+    const nextKeys = Object.keys(nextProps.style);
+    if (prevKeys.length !== nextKeys.length) return false;
+    for (const key of prevKeys) {
+      if ((prevProps.style as Record<string, unknown>)[key] !== (nextProps.style as Record<string, unknown>)[key]) return false;
+    }
+  }
+  return true;
+};
+
 const Tile: React.FC<TileProps> = React.memo(({
   data,
   row,
   col,
   isDraggingSource,
-  isHoverTarget,
   disabled,
   isGameOver,
   onPointerDown,
   style
 }) => {
   if (data.status === CellStatus.NONE) {
-    return <div className="w-full h-full" />; // Empty spacer
+    return <div className="w-full h-full" />;
   }
 
-  // Game over: all tiles turn dark
   let colorClass = COLORS.GRAY;
   if (isGameOver) {
     colorClass = COLORS.DARK;
@@ -39,9 +58,6 @@ const Tile: React.FC<TileProps> = React.memo(({
     colorClass = COLORS.YELLOW;
   }
 
-  // Base classes for the tile
-  // Updated sizes: w-[3.8rem] (~60px) for mobile, sm:w-20 (80px) for larger screens
-  // Only apply touch-none when tile is interactive (to prevent scroll during drag)
   const isInteractive = !disabled && data.status !== CellStatus.CORRECT;
   const baseClasses = `
     relative w-[3.8rem] h-[3.8rem] sm:w-20 sm:h-20
@@ -49,27 +65,16 @@ const Tile: React.FC<TileProps> = React.memo(({
     text-3xl sm:text-5xl font-bold
     rounded-lg select-none
     border-b-[4px] sm:border-b-[6px]
-    transition-all duration-500 ease-in-out
     ${isInteractive ? 'touch-none' : ''}
   `;
 
-  // Cursor logic
   const cursorClass = disabled || data.status === CellStatus.CORRECT
     ? 'cursor-default'
     : 'cursor-grab active:cursor-grabbing';
 
-  // Visual state
   let stateClass = '';
-
   if (isDraggingSource) {
-      // The original tile spot when being dragged
       stateClass = 'opacity-20';
-  } else if (isHoverTarget) {
-      // When a valid tile is being hovered over
-      stateClass = 'scale-110 z-10 shadow-inner ring-4 ring-green-400 ring-opacity-50 brightness-95';
-  } else if (!disabled && data.status !== CellStatus.CORRECT) {
-      // Normal interactive state
-      stateClass = 'hover:scale-105 hover:brightness-105 active:scale-95';
   }
 
   return (
@@ -89,7 +94,7 @@ const Tile: React.FC<TileProps> = React.memo(({
       {data.char}
     </div>
   );
-});
+}, areTilePropsEqual);
 
 Tile.displayName = 'Tile';
 

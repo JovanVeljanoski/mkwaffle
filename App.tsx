@@ -51,6 +51,21 @@ const App: React.FC = () => {
   const [hoverTarget, setHoverTarget] = useState<Coords | null>(null);
   const floatingRef = useRef<HTMLDivElement>(null);
 
+  // Memoized callbacks for Header to prevent unnecessary re-renders
+  const openHelp = useCallback(() => setIsHelpOpen(true), []);
+  const openStats = useCallback(() => setIsStatsOpen(true), []);
+  const openAbout = useCallback(() => setIsAboutOpen(true), []);
+  const openMenu = useCallback(() => setIsMenuOpen(true), []);
+  const closeHelp = useCallback(() => setIsHelpOpen(false), []);
+  const closeStats = useCallback(() => setIsStatsOpen(false), []);
+  const closeAbout = useCallback(() => setIsAboutOpen(false), []);
+  const closeMenu = useCallback(() => setIsMenuOpen(false), []);
+  const openOptions = useCallback(() => setIsOptionsOpen(true), []);
+  const closeOptions = useCallback(() => setIsOptionsOpen(false), []);
+
+  // Stable noop for floating tile
+  const noop = useCallback(() => {}, []);
+
   useEffect(() => {
     const initGame = async () => {
       const puzzleId = getDailySeed();
@@ -135,7 +150,7 @@ const App: React.FC = () => {
     });
   }, [grid, solution, status, swaps]);
 
-  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>, row: number, col: number) => {
+  const handlePointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>, row: number, col: number) => {
     if (status !== 'PLAYING' || !grid || isHelpOpen) return;
 
     const tile = grid[row][col];
@@ -177,7 +192,7 @@ const App: React.FC = () => {
       targets: validTargets
     });
     setHoverTarget(null);
-  };
+  }, [status, grid, isHelpOpen]);
 
   useEffect(() => {
     if (!dragging) return;
@@ -253,17 +268,16 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 flex flex-col items-center font-sans overflow-x-hidden overscroll-none pb-10 transition-colors duration-300">
       <Header
-        onHelpClick={() => setIsHelpOpen(true)}
-        onStatsClick={() => setIsStatsOpen(true)}
-        onAboutClick={() => setIsAboutOpen(true)}
-        onMenuClick={() => setIsMenuOpen(true)}
+        onHelpClick={openHelp}
+        onStatsClick={openStats}
+        onAboutClick={openAbout}
+        onMenuClick={openMenu}
       />
 
       <main className="flex-1 w-full max-w-[600px] flex flex-col items-center px-2 relative">
         <Board
           grid={grid}
           dragSource={dragging?.source || null}
-          hoverTarget={hoverTarget}
           onTilePointerDown={handlePointerDown}
           isGameActive={status === 'PLAYING' && !isHelpOpen}
           isGameOver={status === 'LOST'}
@@ -299,25 +313,25 @@ const App: React.FC = () => {
         )}
       </main>
 
-      <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
-      <StatsModal isOpen={isStatsOpen} onClose={() => setIsStatsOpen(false)} stats={stats} />
+      <HelpModal isOpen={isHelpOpen} onClose={closeHelp} />
+      <StatsModal isOpen={isStatsOpen} onClose={closeStats} stats={stats} />
       <AboutPanel
         isOpen={isAboutOpen}
-        onClose={() => setIsAboutOpen(false)}
-        onHelpClick={() => setIsHelpOpen(true)}
-        onStatsClick={() => setIsStatsOpen(true)}
+        onClose={closeAbout}
+        onHelpClick={openHelp}
+        onStatsClick={openStats}
       />
       <MenuPanel
         isOpen={isMenuOpen}
-        onClose={() => setIsMenuOpen(false)}
-        onStatsClick={() => setIsStatsOpen(true)}
-        onAboutClick={() => setIsAboutOpen(true)}
-        onHelpClick={() => setIsHelpOpen(true)}
-        onOptionsClick={() => setIsOptionsOpen(true)}
+        onClose={closeMenu}
+        onStatsClick={openStats}
+        onAboutClick={openAbout}
+        onHelpClick={openHelp}
+        onOptionsClick={openOptions}
       />
       <OptionsModal
         isOpen={isOptionsOpen}
-        onClose={() => setIsOptionsOpen(false)}
+        onClose={closeOptions}
         isDarkMode={isDarkMode}
         onToggleDarkMode={toggleDarkMode}
       />
@@ -340,7 +354,7 @@ const App: React.FC = () => {
             row={-1}
             col={-1}
             isDraggingSource={false}
-            onPointerDown={() => {}}
+            onPointerDown={noop}
             style={{ width: '100%', height: '100%' }}
           />
         </div>

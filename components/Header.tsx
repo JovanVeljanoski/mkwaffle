@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { getDailySeed } from '../utils/daily';
 
 interface HeaderProps {
@@ -8,7 +8,7 @@ interface HeaderProps {
   onMenuClick: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ onHelpClick, onStatsClick, onAboutClick, onMenuClick }) => {
+const Header: React.FC<HeaderProps> = memo(({ onHelpClick, onStatsClick, onAboutClick, onMenuClick }) => {
   const dailyId = getDailySeed();
 
   return (
@@ -72,6 +72,8 @@ const Header: React.FC<HeaderProps> = ({ onHelpClick, onStatsClick, onAboutClick
       </div>
     </header>
   );
-};
+});
+
+Header.displayName = 'Header';
 
 export default Header;

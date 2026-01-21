@@ -1,5 +1,4 @@
-import React from 'react';
-import Tile from './Tile';
+import React, { memo } from 'react';
 import { CellStatus } from '../types';
 
 interface HelpModalProps {
@@ -7,7 +6,7 @@ interface HelpModalProps {
   onClose: () => void;
 }
 
-const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
+const HelpModal: React.FC<HelpModalProps> = memo(({ isOpen, onClose }) => {
   // Handle Escape key to close modal
   React.useEffect(() => {
     if (!isOpen) return;
@@ -126,6 +125,8 @@ const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
       </div>
     </div>
   );
-};
+});
+
+HelpModal.displayName = 'HelpModal';
 
 export default HelpModal;

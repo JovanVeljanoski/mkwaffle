@@ -231,3 +231,245 @@ describe('checkWin', () => {
     expect(checkWin(grid)).toBe(true);
   });
 });
+
+describe('Green Letter Algorithm (New)', () => {
+  const testSolution: string[][] = [
+    ['П', 'Л', 'А', 'Ж', 'А'],
+    ['Е', ' ', 'Н', ' ', 'К'],
+    ['В', 'Е', 'Т', 'Е', 'Р'],
+    ['А', ' ', 'И', ' ', 'Е'],
+    ['Ч', 'Е', 'К', 'О', 'Р']
+  ];
+
+  // Helper to count green (correct) letters
+  const countGreens = (grid: Grid, solution: string[][]): number => {
+    let count = 0;
+    for (let r = 0; r < GRID_SIZE; r++) {
+      for (let c = 0; c < GRID_SIZE; c++) {
+        if (isValidCell(r, c) && grid[r][c].char === solution[r][c]) {
+          count++;
+        }
+      }
+    }
+    return count;
+  };
+
+  describe('Green count constraints', () => {
+    it('should always produce 4-7 green letters', () => {
+      // Test with multiple iterations to catch any randomness issues
+      for (let i = 0; i < 50; i++) {
+        const grid = generateInitialState(testSolution);
+        const greens = countGreens(grid, testSolution);
+        
+        expect(greens).toBeGreaterThanOrEqual(4);
+        expect(greens).toBeLessThanOrEqual(7);
+      }
+    });
+
+    it('should never start with a fully solved puzzle', () => {
+      for (let i = 0; i < 50; i++) {
+        const grid = generateInitialState(testSolution);
+        const greens = countGreens(grid, testSolution);
+        
+        // There are 21 valid cells, should never all be green
+        expect(greens).toBeLessThan(21);
+      }
+    });
+
+    it('should have at least some non-green letters', () => {
+      for (let i = 0; i < 50; i++) {
+        const grid = generateInitialState(testSolution);
+        const greens = countGreens(grid, testSolution);
+        
+        // With max 7 greens, we should have at least 14 non-greens (21 - 7)
+        expect(greens).toBeLessThanOrEqual(7);
+      }
+    });
+  });
+
+  describe('Letter conservation', () => {
+    it('should preserve all letters from the solution', () => {
+      const grid = generateInitialState(testSolution);
+
+      // Extract all valid chars from solution
+      const solutionChars: string[] = [];
+      for (let r = 0; r < GRID_SIZE; r++) {
+        for (let c = 0; c < GRID_SIZE; c++) {
+          if (isValidCell(r, c)) {
+            solutionChars.push(testSolution[r][c]);
+          }
+        }
+      }
+
+      // Extract all valid chars from generated grid
+      const gridChars: string[] = [];
+      for (let r = 0; r < GRID_SIZE; r++) {
+        for (let c = 0; c < GRID_SIZE; c++) {
+          if (isValidCell(r, c)) {
+            gridChars.push(grid[r][c].char);
+          }
+        }
+      }
+
+      // Should have same characters (possibly in different order)
+      expect(gridChars.sort()).toEqual(solutionChars.sort());
+    });
+
+    it('should not add or remove any characters', () => {
+      const grid = generateInitialState(testSolution);
+
+      // Count each character in solution
+      const solutionCounts: Record<string, number> = {};
+      for (let r = 0; r < GRID_SIZE; r++) {
+        for (let c = 0; c < GRID_SIZE; c++) {
+          if (isValidCell(r, c)) {
+            const char = testSolution[r][c];
+            solutionCounts[char] = (solutionCounts[char] || 0) + 1;
+          }
+        }
+      }
+
+      // Count each character in grid
+      const gridCounts: Record<string, number> = {};
+      for (let r = 0; r < GRID_SIZE; r++) {
+        for (let c = 0; c < GRID_SIZE; c++) {
+          if (isValidCell(r, c)) {
+            const char = grid[r][c].char;
+            gridCounts[char] = (gridCounts[char] || 0) + 1;
+          }
+        }
+      }
+
+      // Counts should match exactly
+      expect(gridCounts).toEqual(solutionCounts);
+    });
+  });
+
+  describe('Derangement algorithm', () => {
+    it('should not create accidental greens beyond the intended count', () => {
+      // Generate multiple grids and verify the algorithm maintains control
+      for (let i = 0; i < 20; i++) {
+        const grid = generateInitialState(testSolution);
+        const greens = countGreens(grid, testSolution);
+        
+        // The algorithm should produce exactly the intended number of greens
+        // (4-7 range), not more due to lucky random placements
+        expect(greens).toBeLessThanOrEqual(7);
+      }
+    });
+
+    it('should successfully create valid permutations', () => {
+      // Verify the grid is a valid permutation (not partially filled)
+      const grid = generateInitialState(testSolution);
+      
+      for (let r = 0; r < GRID_SIZE; r++) {
+        for (let c = 0; c < GRID_SIZE; c++) {
+          if (isValidCell(r, c)) {
+            // Every valid cell should have a non-empty character
+            expect(grid[r][c].char).toBeTruthy();
+            expect(grid[r][c].char).not.toBe('');
+          }
+        }
+      }
+    });
+  });
+
+  describe('Deterministic behavior', () => {
+    it('should produce consistent results for the same seed', () => {
+      const grid1 = generateInitialState(testSolution);
+      const grid2 = generateInitialState(testSolution);
+
+      // Same seed (same day) should produce identical grids
+      for (let r = 0; r < GRID_SIZE; r++) {
+        for (let c = 0; c < GRID_SIZE; c++) {
+          expect(grid1[r][c].char).toBe(grid2[r][c].char);
+          expect(grid1[r][c].status).toBe(grid2[r][c].status);
+        }
+      }
+    });
+
+    it('should have same green count for same seed', () => {
+      const grid1 = generateInitialState(testSolution);
+      const grid2 = generateInitialState(testSolution);
+
+      const greens1 = countGreens(grid1, testSolution);
+      const greens2 = countGreens(grid2, testSolution);
+
+      expect(greens1).toBe(greens2);
+    });
+  });
+
+  describe('Distribution properties', () => {
+    it('should be deterministic (same seed produces same green count)', () => {
+      const samples = 100;
+      const firstGrid = generateInitialState(testSolution);
+      const firstGreens = countGreens(firstGrid, testSolution);
+
+      // All iterations with same seed should produce same result
+      for (let i = 0; i < samples; i++) {
+        const grid = generateInitialState(testSolution);
+        const greens = countGreens(grid, testSolution);
+        
+        expect(greens).toBe(firstGreens);
+        expect(greens).toBeGreaterThanOrEqual(4);
+        expect(greens).toBeLessThanOrEqual(7);
+      }
+    });
+
+    it('should produce green count within expected range', () => {
+      const grid = generateInitialState(testSolution);
+      const greens = countGreens(grid, testSolution);
+      
+      // The algorithm guarantees 4-7 greens
+      expect(greens).toBeGreaterThanOrEqual(4);
+      expect(greens).toBeLessThanOrEqual(7);
+    });
+  });
+
+  describe('Color coding integration', () => {
+    it('should properly color-code the generated grid', () => {
+      const grid = generateInitialState(testSolution);
+
+      // Count different status types
+      let correctCount = 0;
+      let presentCount = 0;
+      let wrongCount = 0;
+      let noneCount = 0;
+
+      for (let r = 0; r < GRID_SIZE; r++) {
+        for (let c = 0; c < GRID_SIZE; c++) {
+          const status = grid[r][c].status;
+          if (status === CellStatus.CORRECT) correctCount++;
+          else if (status === CellStatus.PRESENT) presentCount++;
+          else if (status === CellStatus.WRONG) wrongCount++;
+          else if (status === CellStatus.NONE) noneCount++;
+        }
+      }
+
+      // Should have 4 NONE cells (gaps)
+      expect(noneCount).toBe(4);
+
+      // Should have 4-7 CORRECT cells (greens)
+      expect(correctCount).toBeGreaterThanOrEqual(4);
+      expect(correctCount).toBeLessThanOrEqual(7);
+
+      // Total valid cells should be 21 (25 - 4 gaps)
+      expect(correctCount + presentCount + wrongCount).toBe(21);
+    });
+
+    it('should mark green letters as CORRECT status', () => {
+      const grid = generateInitialState(testSolution);
+
+      // All letters matching their solution position should be CORRECT
+      for (let r = 0; r < GRID_SIZE; r++) {
+        for (let c = 0; c < GRID_SIZE; c++) {
+          if (isValidCell(r, c)) {
+            if (grid[r][c].char === testSolution[r][c]) {
+              expect(grid[r][c].status).toBe(CellStatus.CORRECT);
+            }
+          }
+        }
+      }
+    });
+  });
+});

@@ -106,6 +106,25 @@ npm run preview
 
 The Macedonian dictionary used in this app contains 5-letter Macedonian words suitable for the waffle grid puzzle. Words are validated to ensure they can form valid intersecting patterns.
 
+## Algorithm
+
+### Puzzle Generation
+
+Each daily puzzle is generated deterministically from a seed (based on the date), ensuring all players get the same puzzle on the same day.
+
+**Initial State Generation:**
+1. A valid solution grid is created with 6 intersecting 5-letter words (3 horizontal, 3 vertical)
+2. The starting grid is generated with **4-7 letters guaranteed to be in correct positions** (green tiles)
+3. The number of initial greens follows a weighted distribution:
+   - 40% chance: 4 greens
+   - 30% chance: 5 greens
+   - 20% chance: 6 greens
+   - 10% chance: 7 greens
+4. Remaining letters are arranged using a **derangement algorithm** that ensures no letter accidentally lands in its correct position
+5. This guarantees exactly the intended number of green letters, providing consistent starting difficulty
+
+This approach mimics the original wafflegame.net experience, where puzzles start with several correctly placed letters to provide strategic starting points while maintaining challenge.
+
 ## Tech Stack
 
 - **React 19** - UI framework

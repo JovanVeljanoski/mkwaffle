@@ -442,7 +442,7 @@ const App: React.FC = () => {
           <style>{`
             @keyframes fly-from-source {
               0% {
-                transform: translate(${swapping.fromRect.x - swapping.toRect.x}px, ${swapping.fromRect.y - swapping.toRect.y}px) scale(1.1);
+                transform: translate(0, 0) scale(1.1);
                 filter: drop-shadow(0 10px 15px rgba(0,0,0,0.3));
               }
               100% {

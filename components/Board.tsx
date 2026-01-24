@@ -53,6 +53,7 @@ const Board: React.FC<BoardProps> = memo(({
       {grid.map((row, rIndex) => (
         <React.Fragment key={rIndex}>
           {row.map((cell, cIndex) => {
+            const isDragging = dragSource?.row === rIndex && dragSource?.col === cIndex;
             const isSwapping = (swapping?.from.row === rIndex && swapping?.from.col === cIndex) ||
                               (swapping?.to.row === rIndex && swapping?.to.col === cIndex);
 
@@ -62,7 +63,7 @@ const Board: React.FC<BoardProps> = memo(({
                 data={cell}
                 row={rIndex}
                 col={cIndex}
-                isDraggingSource={(dragSource?.row === rIndex && dragSource?.col === cIndex) || isSwapping}
+                isDraggingSource={isDragging}
                 noTransition={isSwapping}
                 onPointerDown={onTilePointerDown}
                 disabled={!isGameActive}

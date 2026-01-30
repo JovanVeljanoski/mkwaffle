@@ -179,6 +179,266 @@ describe('updateColors', () => {
   });
 });
 
+describe('updateColors - Duplicate Letter Handling', () => {
+  // Test the fix for duplicate letter yellow coloring
+  // Bug: When solution has 1 'A' but grid has 2 'A's, both were yellow
+  // Fix: Only as many yellows as there are remaining needed letters
+
+  it('should only yellow one letter when solution has one but grid has two', () => {
+    // Solution row 0: А Б В Г Д (one А at position 0)
+    // Current row 0: Х А А Г Д (two А's at positions 1 and 2, X at position 0)
+    const solution: string[][] = [
+      ['А', 'Б', 'В', 'Г', 'Д'],
+      ['Е', ' ', 'Ж', ' ', 'З'],
+      ['И', 'Ј', 'К', 'Л', 'М'],
+      ['Н', ' ', 'О', ' ', 'П'],
+      ['Р', 'С', 'Т', 'У', 'Ф']
+    ];
+
+    const grid: Grid = [
+      // Row 0: X at pos 0 (needs А), two А's at positions 1 and 2
+      [
+        { char: 'Х', status: CellStatus.WRONG },
+        { char: 'А', status: CellStatus.WRONG },
+        { char: 'А', status: CellStatus.WRONG },
+        { char: 'Г', status: CellStatus.WRONG },
+        { char: 'Д', status: CellStatus.WRONG }
+      ],
+      [
+        { char: 'Е', status: CellStatus.WRONG },
+        { char: '', status: CellStatus.NONE },
+        { char: 'Ж', status: CellStatus.WRONG },
+        { char: '', status: CellStatus.NONE },
+        { char: 'З', status: CellStatus.WRONG }
+      ],
+      [
+        { char: 'И', status: CellStatus.WRONG },
+        { char: 'Ј', status: CellStatus.WRONG },
+        { char: 'К', status: CellStatus.WRONG },
+        { char: 'Л', status: CellStatus.WRONG },
+        { char: 'М', status: CellStatus.WRONG }
+      ],
+      [
+        { char: 'Н', status: CellStatus.WRONG },
+        { char: '', status: CellStatus.NONE },
+        { char: 'О', status: CellStatus.WRONG },
+        { char: '', status: CellStatus.NONE },
+        { char: 'П', status: CellStatus.WRONG }
+      ],
+      [
+        { char: 'Р', status: CellStatus.WRONG },
+        { char: 'С', status: CellStatus.WRONG },
+        { char: 'Т', status: CellStatus.WRONG },
+        { char: 'У', status: CellStatus.WRONG },
+        { char: 'Ф', status: CellStatus.WRONG }
+      ]
+    ];
+
+    const colored = updateColors(grid, solution);
+
+    // Position 0: Х is wrong and not needed - should be WRONG (gray)
+    expect(colored[0][0].status).toBe(CellStatus.WRONG);
+
+    // Position 1: First А - should be PRESENT (yellow) because row needs А
+    expect(colored[0][1].status).toBe(CellStatus.PRESENT);
+
+    // Position 2: Second А - should be WRONG (gray) because row's А need was claimed
+    // BUT it's at an intersection (col 2), so check if col 2 needs А
+    // Col 2 solution: В, Ж, К, О, Т - no А, so this А should be gray
+    expect(colored[0][2].status).toBe(CellStatus.WRONG);
+  });
+
+  it('should yellow intersection letter for column when row need is claimed', () => {
+    // Scenario: Two А's in row, one at intersection
+    // Row needs 1 А, Column also needs 1 А
+    // First А (non-intersection) claims row, second А (intersection) should be yellow for column
+
+    const solution: string[][] = [
+      ['А', 'Б', 'В', 'Г', 'Д'],  // Row 0 has А at position 0
+      ['Е', ' ', 'Ж', ' ', 'З'],
+      ['И', 'Ј', 'К', 'Л', 'М'],
+      ['Н', ' ', 'А', ' ', 'П'],  // Col 2 has А at position 3 (row 3)
+      ['Р', 'С', 'Т', 'У', 'Ф']
+    ];
+
+    const grid: Grid = [
+      // Row 0: X at pos 0, А at pos 1 (non-intersection), А at pos 2 (intersection with col 2)
+      [
+        { char: 'Х', status: CellStatus.WRONG },
+        { char: 'А', status: CellStatus.WRONG },
+        { char: 'А', status: CellStatus.WRONG },
+        { char: 'Г', status: CellStatus.WRONG },
+        { char: 'Д', status: CellStatus.WRONG }
+      ],
+      [
+        { char: 'Е', status: CellStatus.WRONG },
+        { char: '', status: CellStatus.NONE },
+        { char: 'Ж', status: CellStatus.WRONG },
+        { char: '', status: CellStatus.NONE },
+        { char: 'З', status: CellStatus.WRONG }
+      ],
+      [
+        { char: 'И', status: CellStatus.WRONG },
+        { char: 'Ј', status: CellStatus.WRONG },
+        { char: 'К', status: CellStatus.WRONG },
+        { char: 'Л', status: CellStatus.WRONG },
+        { char: 'М', status: CellStatus.WRONG }
+      ],
+      [
+        { char: 'Н', status: CellStatus.WRONG },
+        { char: '', status: CellStatus.NONE },
+        { char: 'Х', status: CellStatus.WRONG },  // Col 2 needs А here
+        { char: '', status: CellStatus.NONE },
+        { char: 'П', status: CellStatus.WRONG }
+      ],
+      [
+        { char: 'Р', status: CellStatus.WRONG },
+        { char: 'С', status: CellStatus.WRONG },
+        { char: 'Т', status: CellStatus.WRONG },
+        { char: 'У', status: CellStatus.WRONG },
+        { char: 'Ф', status: CellStatus.WRONG }
+      ]
+    ];
+
+    const colored = updateColors(grid, solution);
+
+    // Position (0,1): First А - yellow for row 0 (row needs А at position 0)
+    expect(colored[0][1].status).toBe(CellStatus.PRESENT);
+
+    // Position (0,2): Second А at intersection - should ALSO be yellow
+    // Row 0's А need was claimed by (0,1), BUT col 2 needs А at position (3,2)
+    // So this А should be yellow for the column
+    expect(colored[0][2].status).toBe(CellStatus.PRESENT);
+  });
+
+  it('should handle multiple duplicate letters correctly', () => {
+    // Solution has 2 А's in row, grid has 3 А's
+    // Only 2 should be yellow
+
+    const solution: string[][] = [
+      ['А', 'Б', 'А', 'Г', 'Д'],  // Row 0 has А at positions 0 and 2
+      ['Е', ' ', 'Ж', ' ', 'З'],
+      ['И', 'Ј', 'К', 'Л', 'М'],
+      ['Н', ' ', 'О', ' ', 'П'],
+      ['Р', 'С', 'Т', 'У', 'Ф']
+    ];
+
+    const grid: Grid = [
+      // Row 0: X X X, then А А А at positions 1, 3, 4 (none in correct position)
+      [
+        { char: 'Х', status: CellStatus.WRONG },  // Should be А
+        { char: 'А', status: CellStatus.WRONG },  // First А
+        { char: 'Х', status: CellStatus.WRONG },  // Should be А
+        { char: 'А', status: CellStatus.WRONG },  // Second А
+        { char: 'А', status: CellStatus.WRONG }   // Third А
+      ],
+      [
+        { char: 'Е', status: CellStatus.WRONG },
+        { char: '', status: CellStatus.NONE },
+        { char: 'Ж', status: CellStatus.WRONG },
+        { char: '', status: CellStatus.NONE },
+        { char: 'З', status: CellStatus.WRONG }
+      ],
+      [
+        { char: 'И', status: CellStatus.WRONG },
+        { char: 'Ј', status: CellStatus.WRONG },
+        { char: 'К', status: CellStatus.WRONG },
+        { char: 'Л', status: CellStatus.WRONG },
+        { char: 'М', status: CellStatus.WRONG }
+      ],
+      [
+        { char: 'Н', status: CellStatus.WRONG },
+        { char: '', status: CellStatus.NONE },
+        { char: 'О', status: CellStatus.WRONG },
+        { char: '', status: CellStatus.NONE },
+        { char: 'П', status: CellStatus.WRONG }
+      ],
+      [
+        { char: 'Р', status: CellStatus.WRONG },
+        { char: 'С', status: CellStatus.WRONG },
+        { char: 'Т', status: CellStatus.WRONG },
+        { char: 'У', status: CellStatus.WRONG },
+        { char: 'Ф', status: CellStatus.WRONG }
+      ]
+    ];
+
+    const colored = updateColors(grid, solution);
+
+    // Count how many А's are yellow in row 0
+    let yellowCount = 0;
+    for (let c = 0; c < GRID_SIZE; c++) {
+      if (colored[0][c].char === 'А' && colored[0][c].status === CellStatus.PRESENT) {
+        yellowCount++;
+      }
+    }
+
+    // Solution needs 2 А's, so exactly 2 should be yellow
+    expect(yellowCount).toBe(2);
+
+    // First two А's (at positions 1 and 3) should be yellow, third (position 4) gray
+    expect(colored[0][1].status).toBe(CellStatus.PRESENT);
+    expect(colored[0][3].status).toBe(CellStatus.PRESENT);
+    expect(colored[0][4].status).toBe(CellStatus.WRONG);
+  });
+
+  it('should mark letter as green when in correct position even with duplicates', () => {
+    const solution: string[][] = [
+      ['А', 'Б', 'В', 'Г', 'Д'],
+      ['Е', ' ', 'Ж', ' ', 'З'],
+      ['И', 'Ј', 'К', 'Л', 'М'],
+      ['Н', ' ', 'О', ' ', 'П'],
+      ['Р', 'С', 'Т', 'У', 'Ф']
+    ];
+
+    const grid: Grid = [
+      // Row 0: А in correct position (0), another А at position 1
+      [
+        { char: 'А', status: CellStatus.WRONG },  // Correct position!
+        { char: 'А', status: CellStatus.WRONG },  // Extra А
+        { char: 'В', status: CellStatus.WRONG },
+        { char: 'Г', status: CellStatus.WRONG },
+        { char: 'Д', status: CellStatus.WRONG }
+      ],
+      [
+        { char: 'Е', status: CellStatus.WRONG },
+        { char: '', status: CellStatus.NONE },
+        { char: 'Ж', status: CellStatus.WRONG },
+        { char: '', status: CellStatus.NONE },
+        { char: 'З', status: CellStatus.WRONG }
+      ],
+      [
+        { char: 'И', status: CellStatus.WRONG },
+        { char: 'Ј', status: CellStatus.WRONG },
+        { char: 'К', status: CellStatus.WRONG },
+        { char: 'Л', status: CellStatus.WRONG },
+        { char: 'М', status: CellStatus.WRONG }
+      ],
+      [
+        { char: 'Н', status: CellStatus.WRONG },
+        { char: '', status: CellStatus.NONE },
+        { char: 'О', status: CellStatus.WRONG },
+        { char: '', status: CellStatus.NONE },
+        { char: 'П', status: CellStatus.WRONG }
+      ],
+      [
+        { char: 'Р', status: CellStatus.WRONG },
+        { char: 'С', status: CellStatus.WRONG },
+        { char: 'Т', status: CellStatus.WRONG },
+        { char: 'У', status: CellStatus.WRONG },
+        { char: 'Ф', status: CellStatus.WRONG }
+      ]
+    ];
+
+    const colored = updateColors(grid, solution);
+
+    // Position 0: А is in correct position - should be GREEN
+    expect(colored[0][0].status).toBe(CellStatus.CORRECT);
+
+    // Position 1: Extra А - should be GRAY (row's А need is satisfied by position 0)
+    expect(colored[0][1].status).toBe(CellStatus.WRONG);
+  });
+});
+
 describe('checkWin', () => {
   it('should return true when all valid cells are CORRECT', () => {
     const grid: Grid = Array(GRID_SIZE).fill(null).map((_, r) =>
@@ -260,7 +520,7 @@ describe('Green Letter Algorithm (New)', () => {
       for (let i = 0; i < 50; i++) {
         const grid = generateInitialState(testSolution);
         const greens = countGreens(grid, testSolution);
-        
+
         expect(greens).toBeGreaterThanOrEqual(4);
         expect(greens).toBeLessThanOrEqual(7);
       }
@@ -270,7 +530,7 @@ describe('Green Letter Algorithm (New)', () => {
       for (let i = 0; i < 50; i++) {
         const grid = generateInitialState(testSolution);
         const greens = countGreens(grid, testSolution);
-        
+
         // There are 21 valid cells, should never all be green
         expect(greens).toBeLessThan(21);
       }
@@ -280,7 +540,7 @@ describe('Green Letter Algorithm (New)', () => {
       for (let i = 0; i < 50; i++) {
         const grid = generateInitialState(testSolution);
         const greens = countGreens(grid, testSolution);
-        
+
         // With max 7 greens, we should have at least 14 non-greens (21 - 7)
         expect(greens).toBeLessThanOrEqual(7);
       }
@@ -351,7 +611,7 @@ describe('Green Letter Algorithm (New)', () => {
       for (let i = 0; i < 20; i++) {
         const grid = generateInitialState(testSolution);
         const greens = countGreens(grid, testSolution);
-        
+
         // The algorithm should produce exactly the intended number of greens
         // (4-7 range), not more due to lucky random placements
         expect(greens).toBeLessThanOrEqual(7);
@@ -361,7 +621,7 @@ describe('Green Letter Algorithm (New)', () => {
     it('should successfully create valid permutations', () => {
       // Verify the grid is a valid permutation (not partially filled)
       const grid = generateInitialState(testSolution);
-      
+
       for (let r = 0; r < GRID_SIZE; r++) {
         for (let c = 0; c < GRID_SIZE; c++) {
           if (isValidCell(r, c)) {
@@ -409,7 +669,7 @@ describe('Green Letter Algorithm (New)', () => {
       for (let i = 0; i < samples; i++) {
         const grid = generateInitialState(testSolution);
         const greens = countGreens(grid, testSolution);
-        
+
         expect(greens).toBe(firstGreens);
         expect(greens).toBeGreaterThanOrEqual(4);
         expect(greens).toBeLessThanOrEqual(7);
@@ -419,7 +679,7 @@ describe('Green Letter Algorithm (New)', () => {
     it('should produce green count within expected range', () => {
       const grid = generateInitialState(testSolution);
       const greens = countGreens(grid, testSolution);
-      
+
       // The algorithm guarantees 4-7 greens
       expect(greens).toBeGreaterThanOrEqual(4);
       expect(greens).toBeLessThanOrEqual(7);

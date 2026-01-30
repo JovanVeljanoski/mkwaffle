@@ -172,9 +172,9 @@ export const generateInitialState = (solution: string[][]): Grid => {
 };
 
 export const updateColors = (currentGrid: Grid, solution: string[][]): Grid => {
-  const newGrid = currentGrid.map(row => row.map(cell => ({ ...cell })));
+  const newGrid = currentGrid.map((row) => row.map((cell) => ({ ...cell })));
 
-  // 1. Mark CORRECT (Green)
+  // 1. First pass: Mark CORRECT (Green) for exact position matches
   for (const { row, col } of VALID_COORDS) {
     if (newGrid[row][col].char === solution[row][col]) {
       newGrid[row][col].status = CellStatus.CORRECT;
@@ -183,34 +183,73 @@ export const updateColors = (currentGrid: Grid, solution: string[][]): Grid => {
     }
   }
 
-  // 2. Mark PRESENT (Yellow)
-  // Waffle logic: A letter is yellow if it belongs in the current ROW or COLUMN
-  // and is not already matched (Green) elsewhere.
+  // 2. Calculate remaining letter needs for each word
+  // This counts how many of each letter are still needed (not yet green) per word
 
-  // We need to count frequencies of letters needed in each row/col
-  // minus the ones already satisfied by Green tiles.
+  // Horizontal words: rows 0, 2, 4 → indices 0, 1, 2
+  const rowRemaining: Map<string, number>[] = [new Map(), new Map(), new Map()];
+  for (let rowIdx = 0; rowIdx < 3; rowIdx++) {
+    const r = rowIdx * 2; // actual row: 0, 2, 4
+    for (let c = 0; c < GRID_SIZE; c++) {
+      const solutionChar = solution[r][c];
+      const currentChar = newGrid[r][c].char;
+      // If this position needs a letter (current doesn't match solution)
+      if (currentChar !== solutionChar) {
+        rowRemaining[rowIdx].set(
+          solutionChar,
+          (rowRemaining[rowIdx].get(solutionChar) || 0) + 1
+        );
+      }
+    }
+  }
 
+  // Vertical words: cols 0, 2, 4 → indices 0, 1, 2
+  const colRemaining: Map<string, number>[] = [new Map(), new Map(), new Map()];
+  for (let colIdx = 0; colIdx < 3; colIdx++) {
+    const c = colIdx * 2; // actual col: 0, 2, 4
+    for (let r = 0; r < GRID_SIZE; r++) {
+      const solutionChar = solution[r][c];
+      const currentChar = newGrid[r][c].char;
+      if (currentChar !== solutionChar) {
+        colRemaining[colIdx].set(
+          solutionChar,
+          (colRemaining[colIdx].get(solutionChar) || 0) + 1
+        );
+      }
+    }
+  }
+
+  // 3. Second pass: Mark PRESENT (Yellow)
+  // Process cells in order (left-to-right, top-to-bottom)
+  // First occurrence of a needed letter gets yellow priority
+  // Intersection cells can be yellow for either their row OR column word
   for (const { row, col } of VALID_COORDS) {
     if (newGrid[row][col].status === CellStatus.CORRECT) continue;
 
     const char = newGrid[row][col].char;
     let isYellow = false;
 
-    // Check Row necessity
+    // Check if cell is in a horizontal word (rows 0, 2, 4)
     if (row % 2 === 0) {
-      // It's a horizontal word
-      const rowChars = newGrid[row].map(c => c.char);
-      const neededInRow = countNeeded(solution[row], rowChars, char);
-      if (neededInRow > 0) isYellow = true;
+      const rowIdx = row / 2;
+      const remaining = rowRemaining[rowIdx].get(char) || 0;
+      if (remaining > 0) {
+        // This letter is needed somewhere in this row - mark yellow and claim the slot
+        rowRemaining[rowIdx].set(char, remaining - 1);
+        isYellow = true;
+      }
     }
 
-    // Check Column necessity
-    if (!isYellow && col % 2 === 0) {
-      // It's a vertical word
-      const colSolution = solution.map(r => r[col]);
-      const colCurrent = newGrid.map(r => r[col].char);
-      const neededInCol = countNeeded(colSolution, colCurrent, char);
-      if (neededInCol > 0) isYellow = true;
+    // Check if cell is in a vertical word (cols 0, 2, 4)
+    // Note: intersection cells check BOTH row and column
+    if (col % 2 === 0) {
+      const colIdx = col / 2;
+      const remaining = colRemaining[colIdx].get(char) || 0;
+      if (remaining > 0) {
+        // This letter is needed somewhere in this column - mark yellow and claim the slot
+        colRemaining[colIdx].set(char, remaining - 1);
+        isYellow = true;
+      }
     }
 
     if (isYellow) {
@@ -219,24 +258,6 @@ export const updateColors = (currentGrid: Grid, solution: string[][]): Grid => {
   }
 
   return newGrid;
-};
-
-// Helper to count how many times 'char' is needed in a line (row or col),
-// excluding spots that are already correct (Green).
-// Note: This is a simplified "Waffle" logic. The real game has complex corner logic.
-// For this clone, if the letter exists in the solution line AND isn't satisfied by a Green tile at that position,
-// AND the number of current occurrences of that char in the line (excluding greens) <= needed, it's yellow.
-// To keep it simple and robust: If it exists in the solution line, we mark it yellow.
-const countNeeded = (solLine: string[], currLine: string[], char: string): number => {
-  let needed = 0;
-  // Count total occurrences in solution
-  // Subtract instances where the current grid already has the correct letter (Green)
-  for (let i = 0; i < solLine.length; i++) {
-     if (solLine[i] === char && currLine[i] !== char) {
-       needed++;
-     }
-  }
-  return needed; // If > 0, there is a slot in this line that needs this letter
 };
 
 export const checkWin = (grid: Grid): boolean => {

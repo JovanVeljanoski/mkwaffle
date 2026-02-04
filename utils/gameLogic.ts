@@ -99,14 +99,13 @@ export const generateInitialState = (solution: string[][]): Grid => {
 
   const rng = mulberry32(seed);
 
-  // Step 1: Decide how many positions to keep green (4-7)
-  // Weighted distribution: 4: 40%, 5: 30%, 6: 20%, 7: 10%
+  // Step 1: Decide how many positions to keep green (6-8)
+  // Weighted distribution: 6: 25%, 7: 50%, 8: 25%
   const rand = rng();
   let numGreens: number;
-  if (rand < 0.4) numGreens = 4;
-  else if (rand < 0.7) numGreens = 5;
-  else if (rand < 0.9) numGreens = 6;
-  else numGreens = 7;
+  if (rand < 0.25) numGreens = 6;
+  else if (rand < 0.75) numGreens = 7;
+  else numGreens = 8;
 
   // Step 2: Select which positions to keep green
   // Shuffle coordinates to randomly select positions

@@ -114,12 +114,11 @@ Each daily puzzle is generated deterministically from a seed (based on the date)
 
 **Initial State Generation:**
 1. A valid solution grid is created with 6 intersecting 5-letter words (3 horizontal, 3 vertical)
-2. The starting grid is generated with **4-7 letters guaranteed to be in correct positions** (green tiles)
+2. The starting grid is generated with **6-8 letters guaranteed to be in correct positions** (green tiles)
 3. The number of initial greens follows a weighted distribution:
-   - 40% chance: 4 greens
-   - 30% chance: 5 greens
-   - 20% chance: 6 greens
-   - 10% chance: 7 greens
+   - 25% chance: 6 greens (~12 optimal swaps needed)
+   - 50% chance: 7 greens (~11 optimal swaps needed)
+   - 25% chance: 8 greens (~10 optimal swaps needed)
 4. Remaining letters are arranged using a **derangement algorithm** that ensures no letter accidentally lands in its correct position
 5. This guarantees exactly the intended number of green letters, providing consistent starting difficulty
 

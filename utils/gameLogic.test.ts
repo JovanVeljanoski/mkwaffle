@@ -515,14 +515,14 @@ describe('Green Letter Algorithm (New)', () => {
   };
 
   describe('Green count constraints', () => {
-    it('should always produce 4-7 green letters', () => {
+    it('should always produce 6-8 green letters', () => {
       // Test with multiple iterations to catch any randomness issues
       for (let i = 0; i < 50; i++) {
         const grid = generateInitialState(testSolution);
         const greens = countGreens(grid, testSolution);
 
-        expect(greens).toBeGreaterThanOrEqual(4);
-        expect(greens).toBeLessThanOrEqual(7);
+        expect(greens).toBeGreaterThanOrEqual(6);
+        expect(greens).toBeLessThanOrEqual(8);
       }
     });
 
@@ -541,8 +541,8 @@ describe('Green Letter Algorithm (New)', () => {
         const grid = generateInitialState(testSolution);
         const greens = countGreens(grid, testSolution);
 
-        // With max 7 greens, we should have at least 14 non-greens (21 - 7)
-        expect(greens).toBeLessThanOrEqual(7);
+        // With max 8 greens, we should have at least 13 non-greens (21 - 8)
+        expect(greens).toBeLessThanOrEqual(8);
       }
     });
   });
@@ -613,8 +613,8 @@ describe('Green Letter Algorithm (New)', () => {
         const greens = countGreens(grid, testSolution);
 
         // The algorithm should produce exactly the intended number of greens
-        // (4-7 range), not more due to lucky random placements
-        expect(greens).toBeLessThanOrEqual(7);
+        // (6-8 range), not more due to lucky random placements
+        expect(greens).toBeLessThanOrEqual(8);
       }
     });
 
@@ -671,8 +671,8 @@ describe('Green Letter Algorithm (New)', () => {
         const greens = countGreens(grid, testSolution);
 
         expect(greens).toBe(firstGreens);
-        expect(greens).toBeGreaterThanOrEqual(4);
-        expect(greens).toBeLessThanOrEqual(7);
+        expect(greens).toBeGreaterThanOrEqual(6);
+        expect(greens).toBeLessThanOrEqual(8);
       }
     });
 
@@ -680,9 +680,9 @@ describe('Green Letter Algorithm (New)', () => {
       const grid = generateInitialState(testSolution);
       const greens = countGreens(grid, testSolution);
 
-      // The algorithm guarantees 4-7 greens
-      expect(greens).toBeGreaterThanOrEqual(4);
-      expect(greens).toBeLessThanOrEqual(7);
+      // The algorithm guarantees 6-8 greens
+      expect(greens).toBeGreaterThanOrEqual(6);
+      expect(greens).toBeLessThanOrEqual(8);
     });
   });
 
@@ -709,9 +709,9 @@ describe('Green Letter Algorithm (New)', () => {
       // Should have 4 NONE cells (gaps)
       expect(noneCount).toBe(4);
 
-      // Should have 4-7 CORRECT cells (greens)
-      expect(correctCount).toBeGreaterThanOrEqual(4);
-      expect(correctCount).toBeLessThanOrEqual(7);
+      // Should have 6-8 CORRECT cells (greens)
+      expect(correctCount).toBeGreaterThanOrEqual(6);
+      expect(correctCount).toBeLessThanOrEqual(8);
 
       // Total valid cells should be 21 (25 - 4 gaps)
       expect(correctCount + presentCount + wrongCount).toBe(21);
